@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.8.17+commit.8df45f5f"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Trazabilidad.sol": "Traza"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Trazabilidad.sol": {
+			"keccak256": "0x1d9ea7f30a851a13428403d4afe18ae68399245aea4f3bf48f7677ab1baf4ea5",
+			"license": "UNLICENSED",
+			"urls": [
+				"bzz-raw://88fd232314169a1674e6918a0add97259922466f98aaa4ef4cff636f0872df59",
+				"dweb:/ipfs/QmNuy4LUezmZY5QKHd4c6neuc1WTcAA3EULjePLScvAs7G"
+			]
+		}
+	},
+	"version": 1
+}
