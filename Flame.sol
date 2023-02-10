@@ -1,8 +1,7 @@
 // Version de solidity del Smart Contract
 // SPDX-License-Identifier: UNLICENSED
 
-import './Validator.sol';
-
+import './RandomValidators.sol';
 
 pragma solidity ^0.8.16;
 
@@ -13,7 +12,7 @@ pragma solidity ^0.8.16;
 // Logica: Implementa subasta de productos entre varios participantes
 
 // Declaracion del Smart Contract - Auction
-contract Flame is Validator{
+contract Flame {
 
     // ----------- Variables (datos) -----------
     // Información del Post publicado
@@ -26,6 +25,7 @@ contract Flame is Validator{
         address payable lectorAddress;
         uint votosPos;
         uint votosNeg;
+        mapping (address => bool)  mapVoto; 
     }
 
     
@@ -36,15 +36,14 @@ contract Flame is Validator{
     //Variables validadores
 
     struct Validadores {
-        
         bool isValidator;
         uint deposito;
-        bool votoVarecidad;
-        string creadorUri;
     }
+
     
-    mapping (address => Validadores) mapAddressValidators; 
- 
+    mapping (address => Validadores) mapAddressValidators;
+    //Mejor forama a priori 
+    mapping (string => mapping (bool => address)) mapUriVotoAddress;
 
     //Propietario y actores en el reparto
     address payable owner;
@@ -60,7 +59,9 @@ contract Flame is Validator{
     uint private fijoPublicacion = 10 ether;
     uint private fijoDepositoValidador = 100 ether;
     uint private totalValidadores = 0;
-    
+
+    //Variable Contrato Random
+    RandomValidators randomValidators;     
 
     //Eventos
     // ----------- Eventos (pueden ser emitidos por el Smart Contract) -----------
@@ -73,6 +74,8 @@ contract Flame is Validator{
         // Inicializo el valor a las variables (datos)
         owner = payable(msg.sender);
         contractaddress = payable(address(this));
+        //instancio el contatro RondomValidatros
+        randomValidators = new RandomValidators;
       
         // Se emite un Evento
         emit Msg("Contrato Flame Desplegado");
@@ -124,6 +127,9 @@ contract Flame is Validator{
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
         mapUriCreador[_uri].lectorAddress = payable(msg.sender);
         mapUriCreador[_uri].statusPost = StatusPost.LECTOR;
+        //Calcula los validadores
+        randomValidators.selectOlddNumbers(totalValidadores);
+
         payable(msg.sender).transfer(fijoPublicacion);
        
     }
@@ -157,14 +163,16 @@ contract Flame is Validator{
     }
 
 //Tiene lugar el juicio
-    function juicio (string calldata _uri, bool _voto){
+    function juicio (string calldata _uri, bool _voto) public {
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
-        require(mapAddressValidators[msg.sender].isValidator == false, " Validador no activo ");
+        require(mapAddressValidators[msg.sender].isValidator != false, " Validador no activo ");
         require(mapUriCreador[_uri].statusPost == StatusPost.JUICIO, " La notica no esta en juicio ");
         require(mapAddressValidators[msg.sender] != address(0x0), "Not valid address in validators");
         require(mapAddressValidators[msg.sender].creadorUri == _uri, "Noticia ya votada");
-        mapAddressValidators[msg.sender].creadorUri = _uri;
+        require(mapUriVotoAddress[_uri][_voto] != address(0x0), "Noticia ya votada");
         mapAddressValidators[msg.sender].votoVarecidad = _voto;
+        mapUriVotoAddress[_uri][_voto] = msg.sender; 
+
         if(_voto){
             mapUriCreador[_uri].votosTotales = mapUriCreador[_uri].votosPos + 1;
         }else{
@@ -173,11 +181,12 @@ contract Flame is Validator{
         
     }
 
-    function calcularReparto(string calldata _uri){
+    function calcularReparto(string calldata _uri) public {
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
         uint votoPos = mapUriCreador[_uri].votosPos;
         uint votoNeg = mapUriCreador[_uri].votosNeg;
         if(votoPos > votoNeg){
+            mapUriVotoAddress[_uri][_voto]
             //Gana el creador de la noticia
 
         }else if(votoNeg > votoPos){
@@ -186,7 +195,7 @@ contract Flame is Validator{
             // empate
         }
 
-        reapartovalidadores = totalValidadores / 3;
+        uint repartovalidadores = totalValidadores / 3;
 
         //TODO PAgar 3 a los validadores solo si la respuesta es correcta
     }
