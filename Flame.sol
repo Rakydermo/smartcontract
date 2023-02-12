@@ -4,9 +4,6 @@
 import './RandomValidators.sol';
 
 pragma solidity ^0.8.16;
-
-
-
 // Informacion del Smart Contract
 // Nombre: Reserva
 // Logica: Implementa subasta de productos entre varios participantes
@@ -25,25 +22,18 @@ contract Flame {
         address payable lectorAddress;
         uint votosPos;
         uint votosNeg;
-        mapping (address => bool)  mapVoto; 
+        mapping (address => address) mapValidatorsPost;
+        address[] addressVotosPos;
+        address[] addressVotosNeg;
     }
-
-    
     //Uri creador -> address 
-    
     mapping (string => PostCreador) mapUriCreador;
-
     //Variables validadores
-
     struct Validadores {
         bool isValidator;
         uint deposito;
     }
-
-    
     mapping (address => Validadores) mapAddressValidators;
-    //Mejor forama a priori 
-    mapping (string => mapping (bool => address)) mapUriVotoAddress;
 
     //Propietario y actores en el reparto
     address payable owner;
@@ -61,7 +51,9 @@ contract Flame {
     uint private totalValidadores = 0;
 
     //Variable Contrato Random
-    RandomValidators randomValidators;     
+    RandomValidators randomValidators;  
+    //se meten en un array de numeros para coincidier en los indices
+    uint[] validadoresElejidos;   
 
     //Eventos
     // ----------- Eventos (pueden ser emitidos por el Smart Contract) -----------
@@ -125,8 +117,11 @@ contract Flame {
 
     function avisar(string calldata _uri) public payable is10Flms() {
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
+        require(mapUriCreador[_uri].statusPost != StatusPost.CREADO, " La noticia no esta en el estado adecuado"); 
         mapUriCreador[_uri].lectorAddress = payable(msg.sender);
         mapUriCreador[_uri].statusPost = StatusPost.LECTOR;
+        mapUriCreador[_uri].votoNeg = 0;
+        mapUriCreador[_uri].votoPos = 0; 
         //Calcula los validadores
         randomValidators.selectOlddNumbers(totalValidadores);
 
@@ -154,6 +149,12 @@ contract Flame {
     }
 //delete to list validators
     function removeValidator() public {
+        //Si el el validadoe que entra tiene 0 o menos en depositos de echamos de la lista de validadores
+        if(mapAddressValidators[msg.sender].deposito <= 0){
+            mapAddressValidators[msg.sender].isValidator = false;
+            totalValidadores = totalValidadores - 1;  
+        }
+        //Validamos que es validador para poder recuperar su deposito
         require(mapAddressValidators[msg.sender] != address(0x0), "Not valid address in validators");
         uint devolucion = mapAddressValidators[msg.sender].deposito;
         mapAddressValidators[msg.sender].isValidator = false;
@@ -164,19 +165,28 @@ contract Flame {
 
 //Tiene lugar el juicio
     function juicio (string calldata _uri, bool _voto) public {
+        //Valida que la noticia existe
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
-        require(mapAddressValidators[msg.sender].isValidator != false, " Validador no activo ");
+        //Valida que la notica esta en Juicio
         require(mapUriCreador[_uri].statusPost == StatusPost.JUICIO, " La notica no esta en juicio ");
+        //valida que el validador esta activo
+        require(mapAddressValidators[msg.sender].isValidator != false, " Validador no activo ");
+        //valida que el validador existe
         require(mapAddressValidators[msg.sender] != address(0x0), "Not valid address in validators");
-        require(mapAddressValidators[msg.sender].creadorUri == _uri, "Noticia ya votada");
-        require(mapUriVotoAddress[_uri][_voto] != address(0x0), "Noticia ya votada");
-        mapAddressValidators[msg.sender].votoVarecidad = _voto;
-        mapUriVotoAddress[_uri][_voto] = msg.sender; 
+        //valdia que no ha validado la noticia
+        require(mapUriCreador[_uri][msg.sender] != address(0x0), "Ya valido la noticia" );
+        //resolver validadores elejidos aleatoriamente
+        validadoresElejidos = randomValidators.selectOlddNumbers(11);
+
+
+        mapUriCreador[_uri][msg.sender] = msg.sender; 
 
         if(_voto){
-            mapUriCreador[_uri].votosTotales = mapUriCreador[_uri].votosPos + 1;
+            mapUriCreador[_uri].addressVotosPos.push(msg.sender);
+            mapUriCreador[_uri].votosPos++; 
         }else{
-            mapUriCreador[_uri].votosTotales = mapUriCreador[_uri].votosNeg - 1;
+            mapUriCreador[_uri].addressVotosNeg.push(msg.sender);
+            mapUriCreador[_uri].votosNeg++;
         }
         
     }
@@ -191,8 +201,6 @@ contract Flame {
 
         }else if(votoNeg > votoPos){
             //Gana el lector
-        }else{
-            // empate
         }
 
         uint repartovalidadores = totalValidadores / 3;

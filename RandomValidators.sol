@@ -14,25 +14,19 @@ contract  RandomValidators{
     mapping (uint256 => uint256) public number;
     uint count;
     
-    function selectOlddNumbers(uint256 _max) public view returns (mapping (uint256 => uint256) memory){
-        require(_max <= 0 && _max >= 5 , "tiene que se mayor que 0");
-        if(_max % 2 == 0){
-            count =_max/2 + 1; 
-        }else {
-            count =_max/2;
-        }
-        
-        uint selectedCount = 0;
-        for(uint i = 0; i < count ; i ++){
+    function selectOlddNumbers(uint256 _max) public view returns (uint[] memory) {
+        require(_max >= 50, "No hay 50 validadores");
+        uint[] storage total ;
+        for(uint i = 0; i < 10 ; i ++){
             uint256 random = selectOldNumber(_max);
             if(number[random] == 0){
                 number[random] = random;
-                selectedCount++;
+                total.push(random);
             }else{
                 i--;
             }
         }
-        return number;
+        return total;
     }
 
     function selectOldNumber(uint256 _max) private view returns (uint256){

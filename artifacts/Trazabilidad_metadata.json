@@ -24,10 +24,134 @@
 				"type": "event"
 			},
 			{
-				"inputs": [],
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_message",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_repartidor",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_cliente",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "precio",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_descipcion",
+						"type": "string"
+					}
+				],
+				"name": "MsgEntrada",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint8",
+						"name": "_numentrada",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_descipcion",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_precio",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_status",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_cliente",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_repartidor",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_vendedor",
+						"type": "address"
+					}
+				],
+				"name": "MsgEntradaXNumEnt",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_message",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_precio",
+						"type": "uint256"
+					}
+				],
+				"name": "MsgPrecio",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
+				"name": "canceladaEntrada",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
 				"name": "clienteFirmaRecepcion",
 				"outputs": [],
-				"stateMutability": "nonpayable",
+				"stateMutability": "payable",
 				"type": "function"
 			},
 			{
@@ -38,6 +162,65 @@
 						"internalType": "address payable",
 						"name": "",
 						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "repartidor",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "cliente",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "vendedor",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "precio",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					}
+				],
+				"name": "crearEntrega",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "fondoscontratos",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "numCalculado",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
 					}
 				],
 				"stateMutability": "view",
@@ -58,16 +241,80 @@
 			},
 			{
 				"inputs": [],
+				"name": "panico",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
 				"name": "repartidorFirmaLlegada",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
 				"name": "repartidorFirmaSalida",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_numEnt",
+						"type": "uint256"
+					}
+				],
+				"name": "vendedorRecicePago",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
+				"name": "viewEntrega",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "numEnt",
+						"type": "uint256"
+					}
+				],
+				"name": "viewEntregaStatus",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			}
 		],
@@ -99,11 +346,11 @@
 	},
 	"sources": {
 		"Trazabilidad.sol": {
-			"keccak256": "0xbe346305781a0ae007abbd468076b1c65d787a6b517475daa36f9dabab1965a6",
+			"keccak256": "0xcd26e1a7b1853a379986557f002a75ea919ce0a721a230ca8b149460fa301a41",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://9a5bddffd657698a8b6c835d723da5209031a7248f08566b768e27b33e9ed4fc",
-				"dweb:/ipfs/QmZmTAdn1VU2PsnHzQKpgwoR5UtKNnoJ8xww3GdBMCe4Fx"
+				"bzz-raw://6c2afb236cac89c26bbecba05c5357fde5d2b509ac737e8f03478537f72932b6",
+				"dweb:/ipfs/QmXyYfRLSaZwbegP8e3nisTe5ej1QUDDk7siz3GBf2ra4E"
 			]
 		}
 	},
