@@ -43,6 +43,7 @@ contract Flame {
     string CREADO = "CREADO";
     string REFUTADO = "REFUTADO";
     string JUICIO = "JUICIO";
+    string JUZGADO = "JUZGADO";
 
     uint private fijoJuicio = 3 ether;
     uint private fijoPublicacion = 10 ether;
