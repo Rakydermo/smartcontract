@@ -5,15 +5,14 @@ import './RandomValidators.sol';
 
 pragma solidity ^0.8.16;
 // Informacion del Smart Contract
-// Nombre: Reserva
-// Logica: Implementa subasta de productos entre varios participantes
-
-// Declaracion del Smart Contract - Auction
+// Nombre: Flame
+// Logica: Logica Flame
+// Declaracion del Smart Contract - Flame
 contract Flame {
 
     // ----------- Variables (datos) -----------
     // Información del Post publicado
-    enum  StatusPost {CREADO,LECTOR,JUICIO}
+    enum  StatusPost {CREADO,LECTOR,JUICIO,JUZGADO}
 
     struct PostCreador {
         address payable creadorAddress;
@@ -34,7 +33,7 @@ contract Flame {
         uint deposito;
     }
     mapping (address => Validadores) mapAddressValidators;
-
+    address[] validadoresActivos;
     //Propietario y actores en el reparto
     address payable owner;
     address payable contractaddress;
@@ -67,7 +66,7 @@ contract Flame {
         owner = payable(msg.sender);
         contractaddress = payable(address(this));
         //instancio el contatro RondomValidatros
-        randomValidators = new RandomValidators;
+        randomValidators = new RandomValidators();
       
         // Se emite un Evento
         emit Msg("Contrato Flame Desplegado");
@@ -120,11 +119,11 @@ contract Flame {
         require(mapUriCreador[_uri].statusPost != StatusPost.CREADO, " La noticia no esta en el estado adecuado"); 
         mapUriCreador[_uri].lectorAddress = payable(msg.sender);
         mapUriCreador[_uri].statusPost = StatusPost.LECTOR;
-        mapUriCreador[_uri].votoNeg = 0;
-        mapUriCreador[_uri].votoPos = 0; 
+        mapUriCreador[_uri].votosNeg = 0;
+        mapUriCreador[_uri].votosPos = 0; 
         //Calcula los validadores
-        randomValidators.selectOlddNumbers(totalValidadores);
-
+        validadoresElejidos = randomValidators.selectOlddNumbers(totalValidadores);
+       
         payable(msg.sender).transfer(fijoPublicacion);
        
     }
@@ -145,6 +144,7 @@ contract Flame {
         mapAddressValidators[msg.sender].deposito = fijoDepositoValidador;
         mapAddressValidators[msg.sender].isValidator = true;
         totalValidadores = totalValidadores + 1;
+        validadoresActivos.push(msg.sender);
         payable(msg.sender).transfer(fijoDepositoValidador);
     }
 //delete to list validators
@@ -152,13 +152,25 @@ contract Flame {
         //Si el el validadoe que entra tiene 0 o menos en depositos de echamos de la lista de validadores
         if(mapAddressValidators[msg.sender].deposito <= 0){
             mapAddressValidators[msg.sender].isValidator = false;
-            totalValidadores = totalValidadores - 1;  
+            totalValidadores = totalValidadores - 1; 
+            for (uint i = 0 ; i < validadoresActivos.length; i++){
+            if(validadoresActivos[i] == msg.sender){
+                delete validadoresActivos[i];
+                i == 0;
+            }
+        } 
         }
         //Validamos que es validador para poder recuperar su deposito
-        require(mapAddressValidators[msg.sender] != address(0x0), "Not valid address in validators");
+        require(mapAddressValidators[msg.sender].deposito != 0, "Not valid address in validators");
         uint devolucion = mapAddressValidators[msg.sender].deposito;
         mapAddressValidators[msg.sender].isValidator = false;
         totalValidadores = totalValidadores - 1;
+        for (uint i = 0 ; i < validadoresActivos.length; i++){
+            if(validadoresActivos[i] == msg.sender){
+                delete validadoresActivos[i];
+                i == 0;
+            }
+        }
         payable(contractaddress).transfer(devolucion);
         
     }
@@ -171,16 +183,15 @@ contract Flame {
         require(mapUriCreador[_uri].statusPost == StatusPost.JUICIO, " La notica no esta en juicio ");
         //valida que el validador esta activo
         require(mapAddressValidators[msg.sender].isValidator != false, " Validador no activo ");
-        //valida que el validador existe
-        require(mapAddressValidators[msg.sender] != address(0x0), "Not valid address in validators");
-        //valdia que no ha validado la noticia
-        require(mapUriCreador[_uri][msg.sender] != address(0x0), "Ya valido la noticia" );
-        //resolver validadores elejidos aleatoriamente
-        validadoresElejidos = randomValidators.selectOlddNumbers(11);
-
-
-        mapUriCreador[_uri][msg.sender] = msg.sender; 
-
+        bool elejido = false;
+        for(uint i = 0; i < validadoresElejidos.length; i++){
+            for (uint j = 0; j < validadoresActivos.length; j++){
+                if(validadoresActivos[i] == msg.sender){
+                    elejido = true;
+                } 
+            }
+        }
+        require(elejido == true,"No has sido elejido para la validacone de esta notica");
         if(_voto){
             mapUriCreador[_uri].addressVotosPos.push(msg.sender);
             mapUriCreador[_uri].votosPos++; 
@@ -195,17 +206,43 @@ contract Flame {
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
         uint votoPos = mapUriCreador[_uri].votosPos;
         uint votoNeg = mapUriCreador[_uri].votosNeg;
-        if(votoPos > votoNeg){
-            mapUriVotoAddress[_uri][_voto]
-            //Gana el creador de la noticia
+        if (votoPos == 0){
 
+        }else if (votoNeg == 0){
+
+        }else if(votoPos > votoNeg){
+            //Ganan el creador
+            //Reparto de 3 flms para cada validador
+            uint total = mapUriCreador[_uri].addressVotosPos.length / 3;
+            for(uint i = 0 ; i < mapUriCreador[_uri].addressVotosPos.length; i++){
+                   address val = mapUriCreador[_uri].addressVotosPos[i];
+                   mapAddressValidators[val].deposito = mapAddressValidators[val].deposito + total;
+            }
+            
+            //Calculo perdidas del lector
+            uint calculoLector = (10 - (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
+            //Calculo ganancias del creador
+            uint calculoCreador = (10 + (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
         }else if(votoNeg > votoPos){
             //Gana el lector
+             //Reparto de 3 flms para cada validador
+            uint total = mapUriCreador[_uri].addressVotosNeg.length / 3;
+            for(uint i = 0 ; i < mapUriCreador[_uri].addressVotosNeg.length; i++){
+                   address val = mapUriCreador[_uri].addressVotosNeg[i];
+                   mapAddressValidators[val].deposito = mapAddressValidators[val].deposito + total;
+            }
+            
+            //Calculo ganacias del lector
+            uint calculoLector = (10 + (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
+            //Calculo perdidas del creador
+            uint calculoCreador = (10 - (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
         }
-
-        uint repartovalidadores = totalValidadores / 3;
-
-        //TODO PAgar 3 a los validadores solo si la respuesta es correcta
+        mapUriCreador[_uri].statusPost = StatusPost.JUZGADO;
+       
     }
 
 
