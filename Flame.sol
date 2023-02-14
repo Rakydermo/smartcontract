@@ -208,8 +208,36 @@ contract Flame {
         uint votoPos = mapUriCreador[_uri].votosPos;
         uint votoNeg = mapUriCreador[_uri].votosNeg;
         if (votoPos == 0){
+             //Gana el lector
+             //Reparto de 3 flms para cada validador
+            uint total = mapUriCreador[_uri].addressVotosNeg.length / 3;
+            for(uint i = 0 ; i < mapUriCreador[_uri].addressVotosNeg.length; i++){
+                   address val = mapUriCreador[_uri].addressVotosNeg[i];
+                   mapAddressValidators[val].deposito = mapAddressValidators[val].deposito + total;
+            }
+            
+            //Calculo ganacias del lector
+            uint calculoLector = (10 + (votoPos/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
+            //Calculo perdidas del creador
+            uint calculoCreador = (10 - (votoPos/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
 
         }else if (votoNeg == 0){
+            //Ganan el creador
+            //Reparto de 3 flms para cada validador
+            uint total = mapUriCreador[_uri].addressVotosPos.length / 3;
+            for(uint i = 0 ; i < mapUriCreador[_uri].addressVotosPos.length; i++){
+                   address val = mapUriCreador[_uri].addressVotosPos[i];
+                   mapAddressValidators[val].deposito = mapAddressValidators[val].deposito + total;
+            }
+            
+            //Calculo perdidas del lector
+            uint calculoLector = (10 - (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
+            //Calculo ganancias del creador
+            uint calculoCreador = (10 + (fijoPublicacion/10));
+            mapUriCreador[_uri].lectorAddress.transfer(calculoLector);
 
         }else if(votoPos > votoNeg){
             //Ganan el creador
