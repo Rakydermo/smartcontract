@@ -102,7 +102,7 @@ contract Flame {
    //Modificador
    //nombre:isLector(string)
    //uso: Compueba con el uri de parametro si es lector y el estado de la noctica
-   modifier isLector(string storage _uri){
+   modifier isLector(string calldata _uri){
         require(mapUriCreador[_uri].statusPost == StatusPost.JUZGADO, " Le noticia no esta juzgada no puedes retirar deposito");
         require(mapUriCreador[_uri].lectorAddress == msg.sender, " No puedes interactuar con este evento no eres el lector de la notica");
         _;
@@ -111,7 +111,7 @@ contract Flame {
     //Modificador
    //nombre:isCreador(_uri)
    //uso: Compueba con el uri de parametro si es creador y el estado de la notica
-   modifier isCreador(string storage _uri){
+   modifier isCreador(string calldata _uri){
         require(mapUriCreador[_uri].statusPost == StatusPost.JUZGADO, " Le noticia no esta juzgada no puedes retirar deposito");
         require(mapUriCreador[_uri].creadorAddress == msg.sender, " No puedes interactuar con este evento no eres el creador de la notica");
         _;
@@ -228,10 +228,10 @@ contract Flame {
             
             //Calculo ganacias del lector
             uint calculoLector = (10 + (votoPos/10));
-            mapUriCreador[_uri].depositoLector(calculoLector);
+            mapUriCreador[_uri].depositoLector = calculoLector;
             //Calculo perdidas del creador
             uint calculoCreador = (10 - (votoPos/10));
-            mapUriCreador[_uri].depositoCreador(calculoLector);
+            mapUriCreador[_uri].depositoCreador = calculoLector;
         }else {
             //Ganan el creador
             //Reparto de 3 flms para cada validador
@@ -243,10 +243,10 @@ contract Flame {
             
             //Calculo perdidas del lector
             uint calculoLector = (10 - (votoNeg/10));
-            mapUriCreador[_uri].depositoLector(calculoLector);
+            mapUriCreador[_uri].depositoLector = calculoLector;
             //Calculo ganancias del creador
             uint calculoCreador = (10 + (votoNeg/10));
-            mapUriCreador[_uri].depositoCreador(calculoLector);
+            mapUriCreador[_uri].depositoCreador = calculoLector;
         }
         mapUriCreador[_uri].statusPost = StatusPost.JUZGADO;
        
@@ -255,11 +255,11 @@ contract Flame {
     //funcion recuperar deosito lector
 
     function recuperarDepositoLector(string calldata _uri) public isLector(_uri){
-        msg.sender.transfer( mapUriCreador[_uri].depositoLector);
+        payable(msg.sender).transfer( mapUriCreador[_uri].depositoLector);
     }
     //funcion recuperar deosito creador
     function recuperarDepositoCreador(string calldata _uri) public isCreador(_uri){
-        msg.sender.transfer( mapUriCreador[_uri].depositoCreador);
+        payable(msg.sender).transfer( mapUriCreador[_uri].depositoCreador);
     }
 
 
