@@ -99,6 +99,28 @@ contract Flame {
         _;
    }
 
+   //Modificador
+   //nombre:isLector(string)
+   //uso: Compueba con el uri de parametro si es lector y el estado de la noctica
+   modifier isLector(string storage _uri){
+        require(mapUriCreador[_uri].statusPost == StatusPost.JUZGADO, " Le noticia no esta juzgada no puedes retirar deposito");
+        require(mapUriCreador[_uri].lectorAddress == msg.sender, " No puedes interactuar con este evento no eres el lector de la notica");
+
+        _;
+    }
+
+    //Modificador
+   //nombre:isCreador(_uri)
+   //uso: Compueba con el uri de parametro si es creador y el estado de la notica
+   modifier isCreador(string storage _uri){
+        require(mapUriCreador[_uri].statusPost == StatusPost.JUZGADO, " Le noticia no esta juzgada no puedes retirar deposito");
+        require(mapUriCreador[_uri].creadorAddressAddress == msg.sender, " No puedes interactuar con este evento no eres el creador de la notica");
+
+        _;
+    }
+
+    
+
     function publicar(string calldata _uri) public payable is10Flms {
         //Varifica que la noticia no esta creada
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
@@ -232,8 +254,14 @@ contract Flame {
        
     }
 
-    //TODO funcion recuperar deosito lector
-    //TODO funcion recuperar deosito creador
+    //funcion recuperar deosito lector
 
+    function recuperarDepositoLector(string calldata _uri) public isLector(_uri){
+        msg.sender.transfer( mapUriCreador[_uri].depositoLector);
+    }
+    //funcion recuperar deosito creador
+    function recuperarDepositoCreador(string calldata _uri) public isCreador(_uri){
+        msg.sender.transfer( mapUriCreador[_uri].depositoCreador);
+    }
 
 }
