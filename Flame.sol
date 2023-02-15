@@ -169,7 +169,7 @@ contract Flame {
     }
 
     //Tiene lugar el juicio
-    function juicio (string calldata _uri, bool _voto, address[] calldata validadoresElejidos) public {
+    function juicio (string calldata _uri, bool _voto, address[] validadoresElejidos) public {
         //Valida que la noticia existe
         require(mapUriCreador[_uri].creadorAddress != address(0x0), " La notica no es correcta ");
         //Valida que la notica esta en Juicio
